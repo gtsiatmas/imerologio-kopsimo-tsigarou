@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Χωρίς Τσιγάρο - Ημερολόγιο Προόδου</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --header-green: #10a37f;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --accent-green: #2ecc71;
+            --accent-green-hover: #27ae60;
+            --accent-red: #e53e3e;
+            --border-color: #e2e8f0;
+            --today-border: #3498db;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 560px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--header-green);
+            color: #ffffff;
+            padding: 26px 28px;
+            text-align: left;
+        }
+
+        header h1 {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        header p {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.92);
+        }
+
+        .main-content {
+            padding: 24px 28px 28px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background-color: var(--bg-color);
+            padding: 16px 14px;
+            border-radius: 14px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--header-green);
+            line-height: 1.15;
+            margin-bottom: 6px;
+        }
+
+        .stat-dates {
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            line-height: 1.45;
+            min-height: 2.4em;
+        }
+
+        .stat-dates strong {
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .month-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .nav-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--border-color);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+        }
+
+        .day-cell:hover:not(.empty) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        .day-cell.empty {
+            border: none;
+            background: transparent;
+            cursor: default;
+        }
+
+        .day-cell.today {
+            border: 2.5px solid var(--today-border);
+        }
+
+        .day-cell.checked {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+            color: white;
+        }
+
+        .day-cell.checked:hover {
+            background-color: var(--accent-green-hover);
+        }
+
+        .day-cell.today.checked {
+            border: 2.5px solid var(--today-border);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+        }
+
+        .check-icon {
+            font-size: 0.75rem;
+            margin-top: 2px;
+            display: none;
+        }
+
+        .day-cell.checked .check-icon {
+            display: block;
+        }
+
+        @media (max-width: 460px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌿 Χωρίς Τσιγάρο</h1>
+        <p>Κάθε μέρα μετράει!</p>
+    </header>
+
+    <div class="main-content">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-label">ΣΥΝΕΧΟΜΕΝΕΣ ΗΜΕΡΕΣ ΧΩΡΙΣ ΤΣΙΓΑΡΟ</div>
+                <div class="stat-value" id="current-streak-count">0</div>
+                <div class="stat-dates" id="current-streak-dates"></div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-label">ΜΕΓΑΛΥΤΕΡΟ ΣΕΡΙ ΣΥΝΕΧΟΜΕΝΩΝ ΗΜΕΡΩΝ ΧΩΡΙΣ ΤΣΙΓΑΡΟ</div>
+                <div class="stat-value" id="best-streak-count">0</div>
+                <div class="stat-dates" id="best-streak-dates"></div>
+            </div>
+        </div>
+
+        <div class="calendar-header">
+            <button class="nav-btn" id="prev-month" title="Προηγούμενος μήνας">‹</button>
+            <div class="month-title" id="month-year"></div>
+            <button class="nav-btn" id="next-month" title="Επόμενος μήνας">›</button>
+        </div>
+
+        <div class="weekdays">
+            <div>Δευ</div>
+            <div>Τρι</div>
+            <div>Τετ</div>
+            <div>Πεμ</div>
+            <div>Παρ</div>
+            <div>Σαβ</div>
+            <div>Κυρ</div>
+        </div>
+
+        <div class="days-grid" id="days-grid"></div>
+    </div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'smoke_free_tracker_dates';
+    let checkedDates = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+
+    let currentDate = new Date();
+    let displayYear = currentDate.getFullYear();
+    let displayMonth = currentDate.getMonth();
+
+    const monthYearEl = document.getElementById('month-year');
+    const daysGridEl = document.getElementById('days-grid');
+    const currentStreakCountEl = document.getElementById('current-streak-count');
+    const currentStreakDatesEl = document.getElementById('current-streak-dates');
+    const bestStreakCountEl = document.getElementById('best-streak-count');
+    const bestStreakDatesEl = document.getElementById('best-streak-dates');
+
+    const greekMonths = [
+        'Ιανουάριος', 'Φεβρουάριος', 'Μάρτιος', 'Απρίλιος',
+        'Μάιος', 'Ιούνιος', 'Ιούλιος', 'Αύγουστος',
+        'Σεπτέμβριος', 'Οκτώβριος', 'Νοέμβριος', 'Δεκέμβριος'
+    ];
+
+    const greekMonthsGenitive = [
+        'Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου',
+        'Μαΐου', 'Ιουνίου', 'Ιουλίου', 'Αυγούστου',
+        'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου', 'Δεκεμβρίου'
+    ];
+
+    function formatDateKey(year, month, day) {
+        const m = String(month + 1).padStart(2, '0');
+        const d = String(day).padStart(2, '0');
+        return `${year}-${m}-${d}`;
+    }
+
+    function parseDateKey(key) {
+        const [y, m, d] = key.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+
+    function formatGreekDate(dateObj) {
+        return `${dateObj.getDate()} ${greekMonthsGenitive[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+    }
+
+    function isNextDay(prevDate, nextDate) {
+        const expected = new Date(prevDate);
+        expected.setDate(expected.getDate() + 1);
+        return (
+            expected.getFullYear() === nextDate.getFullYear() &&
+            expected.getMonth() === nextDate.getMonth() &&
+            expected.getDate() === nextDate.getDate()
+        );
+    }
+
+    function saveDates() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify([...checkedDates]));
+        updateStats();
+    }
+
+    function getAllStreaks() {
+        if (checkedDates.size === 0) {
+            return [];
+        }
+
+        const sortedKeys = [...checkedDates].sort();
+        const streaks = [];
+
+        let startDate = parseDateKey(sortedKeys[0]);
+        let endDate = parseDateKey(sortedKeys[0]);
+        let count = 1;
+
+        for (let i = 1; i < sortedKeys.length; i++) {
+            const nextDate = parseDateKey(sortedKeys[i]);
+            if (isNextDay(endDate, nextDate)) {
+                endDate = nextDate;
+                count++;
+            } else {
+                streaks.push({
+                    count,
+                    startDate: new Date(startDate),
+                    endDate: new Date(endDate)
+                });
+                startDate = nextDate;
+                endDate = nextDate;
+                count = 1;
+            }
+        }
+
+        streaks.push({
+            count,
+            startDate: new Date(startDate),
+            endDate: new Date(endDate)
+        });
+
+        return streaks;
+    }
+
+    function getStreakStats() {
+        const streaks = getAllStreaks();
+        if (streaks.length === 0) {
+            return {
+                latest: null,
+                best: null
+            };
+        }
+
+        const latest = streaks[streaks.length - 1];
+
+        let best = streaks[0];
+        for (let i = 1; i < streaks.length; i++) {
+            if (streaks[i].count >= best.count) {
+                best = streaks[i];
+            }
+        }
+
+        return { latest, best };
+    }
+
+    function updateStats() {
+        const { latest, best } = getStreakStats();
+
+        if (latest) {
+            currentStreakCountEl.textContent = latest.count;
+            currentStreakDatesEl.innerHTML = `Από: <strong>${formatGreekDate(latest.startDate)}</strong>`;
+        } else {
+            currentStreakCountEl.textContent = 0;
+            currentStreakDatesEl.innerHTML = `<strong>Δεν υπάρχει ενεργό σερί</strong>`;
+        }
+
+        if (best) {
+            bestStreakCountEl.textContent = best.count;
+            bestStreakDatesEl.innerHTML = `
+                <div>Από: <strong>${formatGreekDate(best.startDate)}</strong></div>
+                <div>Μέχρι: <strong>${formatGreekDate(best.endDate)}</strong></div>
+            `;
+        } else {
+            bestStreakCountEl.textContent = 0;
+            bestStreakDatesEl.innerHTML = `<strong>Δεν υπάρχει καταγραφή</strong>`;
+        }
+    }
+
+    function renderCalendar() {
+        daysGridEl.innerHTML = '';
+        monthYearEl.textContent = `${greekMonths[displayMonth]} ${displayYear}`;
+
+        const firstDayOfMonth = new Date(displayYear, displayMonth, 1).getDay();
+        const startDayIndex = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+        const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+
+        const today = new Date();
+        const todayKey = formatDateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+        for (let i = 0; i < startDayIndex; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.classList.add('day-cell', 'empty');
+            daysGridEl.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            cell.classList.add('day-cell');
+            const dateKey = formatDateKey(displayYear, displayMonth, day);
+
+            if (dateKey === todayKey) {
+                cell.classList.add('today');
+            }
+
+            if (checkedDates.has(dateKey)) {
+                cell.classList.add('checked');
+            }
+
+            cell.innerHTML = `
+                <span>${day}</span>
+                <span class="check-icon">✓</span>
+            `;
+
+            cell.addEventListener('click', () => {
+                if (checkedDates.has(dateKey)) {
+                    checkedDates.delete(dateKey);
+                } else {
+                    checkedDates.add(dateKey);
+                }
+                saveDates();
+                renderCalendar();
+            });
+
+            daysGridEl.appendChild(cell);
+        }
+    }
+
+    document.getElementById('prev-month').addEventListener('click', () => {
+        displayMonth--;
+        if (displayMonth < 0) {
+            displayMonth = 11;
+            displayYear--;
+        }
+        renderCalendar();
+    });
+
+    document.getElementById('next-month').addEventListener('click', () => {
+        displayMonth++;
+        if (displayMonth > 11) {
+            displayMonth = 0;
+            displayYear++;
+        }
+        renderCalendar();
+    });
+
+    renderCalendar();
+    updateStats();
+</script>
+
+</body>
+</html>
